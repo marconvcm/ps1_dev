@@ -26,3 +26,9 @@ make prepare
 ```bash
 make start
 ```
+
+## How to run
+To run the PS1 game, you can use an emulator like DuckStation. Open cue file in the `out` directory with DuckStation or any other PS1 emulator of your choice.
+
+## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details
