@@ -1,9 +1,3 @@
-/*
- * PSn00bSDK basic graphics example with GamePad library demo
- * (C) 2020-2023 Lameguy64, spicyjpeg - MPL licensed
- * Modified to demonstrate elegant GamePad library usage
- */
-
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
