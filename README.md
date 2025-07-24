@@ -15,8 +15,8 @@ To build the project, follow these steps:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/marconvcm/ps1_dev.git
-cd ps1_dev
+git clone https://github.com/marconvcm/ps1_dev.git my_game
+cd my_game && rm -rf .git && git init
 ```
 
 2. Build the Docker image:
