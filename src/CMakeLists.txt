@@ -1,16 +1,17 @@
 cmake_minimum_required(VERSION 3.21)
 
 project(
-	MY_PS1-game
+	my_ps1_game
 	LANGUAGES    C CXX ASM
 	VERSION      1.0.0
-	DESCRIPTION  "MY_PS1 game"
+	DESCRIPTION  "my_ps1_game"
 	HOMEPAGE_URL "http://lameguy64.net/?page=psn00bsdk"
 )
 
 file(GLOB _sources *.c)
+file(GLOB _lib_sources libs/*.c)
 
-psn00bsdk_add_executable(my_ps1_game GPREL ${_sources})
+psn00bsdk_add_executable(my_ps1_game GPREL ${_sources} ${_lib_sources})
 
 psn00bsdk_add_cd_image(
 	iso         # Target name
