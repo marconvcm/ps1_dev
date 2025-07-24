@@ -12,11 +12,13 @@ This repository provides a Docker-based development environment for PlayStation 
 
 ## How to build
 To build the project, follow these steps:
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/marconvcm/ps1_dev.git
 cd ps1_dev
 ```
+
 2. Build the Docker image:
 ```bash
 make prepare
