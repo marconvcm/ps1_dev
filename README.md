@@ -26,8 +26,24 @@ make prepare
 
 3. Build game:
 ```bash
-make start
+make build
 ```
+
+4. Run the game:
+```bash
+# Only works if you have DuckStation set up correctly.
+DUCKSTATION=/path/to/duckstation make emulate
+```
+
+5. Distribute the game:
+```bash
+make dist
+```
+It will create a zip file in the `dist` directory containing the game files.
+
+
+## Contributing
+Contributions are welcome! If you have suggestions for improvements or new features, feel free to open an issue or submit a pull request.
 
 ## How to run
 To run the PS1 game, you can use an emulator like DuckStation. Open cue file in the `out` directory with DuckStation or any other PS1 emulator of your choice.
