@@ -5,6 +5,11 @@ This repository provides a Docker-based development environment for PlayStation 
   <img src=".github/screenshot1.png" alt="PS1 Development Environment" width="600">
 </p>
 
+<p align="center">
+  <img src=".github/trimui.png" alt="Game running on my trimUI brick" width="600">
+</p>
+
+
 ## Dependencies
 - Docker
 - Make
