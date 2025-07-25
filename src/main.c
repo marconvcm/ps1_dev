@@ -261,10 +261,6 @@ int main(int argc, const char **argv)
    Paddle left_paddle = {SCREEN_YRES / 2 - PADDLE_HEIGHT / 2, 0};
    Paddle right_paddle = {SCREEN_YRES / 2 - PADDLE_HEIGHT / 2, 0};
 
-   float game_time = 0.0f;
-   float start_time = 0.0f;
-   float end_time = 0.0f;
-
    reset_ball(&ball);
 
    for (;;)
@@ -284,13 +280,14 @@ int main(int argc, const char **argv)
          draw_text(&ctx, SCREEN_XRES / 2 - 120, SCREEN_YRES / 2 + 24, 0, "PLAYER 2: RIGHT PADDLE (PAD 2)");
          draw_text(&ctx, SCREEN_XRES / 2 - 80, SCREEN_YRES / 2 + 48, 0, "USE D-PAD UP/DOWN");
 
-         // if (pad1.system.start)
-         // {
-         //    state = GAME_PLAYING;
-         //    left_paddle.score = 0;
-         //    right_paddle.score = 0;
-         //    reset_ball(&ball);
-         // }
+         if (is_button_just_released(&pad1, PAD_BUTTON_CIRCLE))
+         {
+            state = GAME_PLAYING;
+            left_paddle.score = 0;
+            right_paddle.score = 0;
+            reset_ball(&ball);
+         }
+
          break;
 
       case GAME_PLAYING:
@@ -437,8 +434,6 @@ int main(int argc, const char **argv)
          }
          break;
       }
-
-      game_time += 0.016f; // Simulate frame time (60 FPS)
 
       flip_buffers(&ctx);
    }

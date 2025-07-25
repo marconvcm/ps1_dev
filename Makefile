@@ -3,6 +3,7 @@
 # Default DuckStation path for macOS
 DUCKSTATION ?= /Applications/DuckStation.app/Contents/MacOS/DuckStation
 
+
 prepare:
 	docker build --platform linux/amd64 . -t psn00bsdk
 
@@ -11,7 +12,7 @@ build:
 
 clean:
 	rm -rf out/ \
-   rm -rf dist/
+	rm -rf dist/
 
 # Run the game with normal boot sequence
 run:
