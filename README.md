@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/banner.png" alt="PS1 Development Environment" width="600">
+</p>
+
 # PS1 Development Environment
 This repository provides a Docker-based development environment for PlayStation 1 (PS1) game development. It includes tools and libraries necessary for building PS1 games, along with a Makefile to streamline the build process.
 
