@@ -82,5 +82,5 @@ zip:
 	@PROJECT_NAME=$$(cat .project 2>/dev/null || echo "my_ps1_game"); \
 	echo "Creating distribution package..."; \
 	mkdir -p dist; \
-	zip -Xj "dist/$${PROJECT_NAME}.zip" "out/$${PROJECT_NAME}.bin" "out/$${PROJECT_NAME}.cue" \
+	zip -Xj "dist/$${PROJECT_NAME}.zip" "out/$${PROJECT_NAME}.bin" "out/$${PROJECT_NAME}.cue"; \
 	echo "Distribution package created successfully."
