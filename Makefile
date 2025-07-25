@@ -1,4 +1,7 @@
-.PHONY: build clean rename
+.PHONY: prepare build clean rename run run-fast build-run build-run-fast
+
+# Default DuckStation path for macOS
+DUCKSTATION ?= /Applications/DuckStation.app/Contents/MacOS/DuckStation
 
 prepare:
 	docker build --platform linux/amd64 . -t psn00bsdk
@@ -8,6 +11,42 @@ build:
 
 clean:
 	rm -rf out/
+
+# Run the game with normal boot sequence
+run:
+	@if [ ! -f "$(DUCKSTATION)" ]; then \
+		echo "Error: DuckStation not found at $(DUCKSTATION)"; \
+		echo "You can specify a custom path with DUCKSTATION=/path/to/duckstation"; \
+		exit 1; \
+	fi
+	@PROJECT_NAME=$$(cat .project 2>/dev/null || echo "my_ps1_game"); \
+	if [ ! -f "out/$${PROJECT_NAME}.bin" ]; then \
+		echo "Error: Game binary not found. Run 'make build' first."; \
+		exit 1; \
+	fi; \
+	echo "Running $${PROJECT_NAME} with DuckStation..."; \
+	"$(DUCKSTATION)" -batch "out/$${PROJECT_NAME}.bin"
+
+# Run the game with fast boot sequence
+run-fast:
+	@if [ ! -f "$(DUCKSTATION)" ]; then \
+		echo "Error: DuckStation not found at $(DUCKSTATION)"; \
+		echo "You can specify a custom path with DUCKSTATION=/path/to/duckstation"; \
+		exit 1; \
+	fi
+	@PROJECT_NAME=$$(cat .project 2>/dev/null || echo "my_ps1_game"); \
+	if [ ! -f "out/$${PROJECT_NAME}.bin" ]; then \
+		echo "Error: Game binary not found. Run 'make build' first."; \
+		exit 1; \
+	fi; \
+	echo "Running $${PROJECT_NAME} with DuckStation (fast boot)..."; \
+	"$(DUCKSTATION)" -batch -fastboot "out/$${PROJECT_NAME}.bin"
+
+# Build and run the game in one command
+build-run: build run
+
+# Build and run the game with fast boot in one command
+build-run-fast: build run-fast
 
 rename:
 	@if [ -z "$(NEW_NAME)" ]; then \

@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <psxgpu.h>
 #include "libs/game_pad.h"
+#include "libs/math.h"
+#include "libs/numeric.h"
 
 // Length of the ordering table, i.e. the range Z coordinates can have, 0-15 in
 // this case. Larger values will allow for more granularity with depth (useful
@@ -118,24 +120,28 @@ void draw_text(RenderContext *ctx, int x, int y, int z, const char *text)
 #define PADDLE_SPEED 4
 #define INITIAL_BALL_SPEED 2
 
-typedef struct {
+typedef struct
+{
    int x, y;
    int vel_x, vel_y;
 } Ball;
 
-typedef struct {
+typedef struct
+{
    int y;
    int score;
 } Paddle;
 
-typedef enum {
+typedef enum
+{
    GAME_MENU,
    GAME_PLAYING,
    GAME_PAUSED,
    GAME_OVER
 } GameState;
 
-void reset_ball(Ball *ball) {
+void reset_ball(Ball *ball)
+{
    ball->x = SCREEN_XRES / 2 - BALL_SIZE / 2;
    ball->y = SCREEN_YRES / 2 - BALL_SIZE / 2;
    // Random direction: either left or right
@@ -143,58 +149,68 @@ void reset_ball(Ball *ball) {
    ball->vel_y = (ball->y % 3 == 0) ? 1 : -1;
 }
 
-void update_ball(Ball *ball, Paddle *left_paddle, Paddle *right_paddle) {
+void update_ball(Ball *ball, Paddle *left_paddle, Paddle *right_paddle)
+{
    // Move ball
    ball->x += ball->vel_x;
    ball->y += ball->vel_y;
-   
+
    // Bounce off top and bottom walls
-   if (ball->y <= 0 || ball->y >= SCREEN_YRES - BALL_SIZE) {
+   if (ball->y <= 0 || ball->y >= SCREEN_YRES - BALL_SIZE)
+   {
       ball->vel_y = -ball->vel_y;
       ball->y = (ball->y <= 0) ? 0 : SCREEN_YRES - BALL_SIZE;
    }
-   
+
    // Check collision with left paddle
-   if (ball->x <= PADDLE_WIDTH && 
-       ball->y + BALL_SIZE >= left_paddle->y && 
-       ball->y <= left_paddle->y + PADDLE_HEIGHT) {
+   if (ball->x <= PADDLE_WIDTH &&
+       ball->y + BALL_SIZE >= left_paddle->y &&
+       ball->y <= left_paddle->y + PADDLE_HEIGHT)
+   {
       ball->vel_x = -ball->vel_x;
       ball->x = PADDLE_WIDTH;
       // Add some vertical velocity based on where ball hits paddle
-      int hit_pos = (ball->y + BALL_SIZE/2) - (left_paddle->y + PADDLE_HEIGHT/2);
+      int hit_pos = (ball->y + BALL_SIZE / 2) - (left_paddle->y + PADDLE_HEIGHT / 2);
       ball->vel_y += hit_pos / 15;
    }
-   
+
    // Check collision with right paddle
-   if (ball->x + BALL_SIZE >= SCREEN_XRES - PADDLE_WIDTH && 
-       ball->y + BALL_SIZE >= right_paddle->y && 
-       ball->y <= right_paddle->y + PADDLE_HEIGHT) {
+   if (ball->x + BALL_SIZE >= SCREEN_XRES - PADDLE_WIDTH &&
+       ball->y + BALL_SIZE >= right_paddle->y &&
+       ball->y <= right_paddle->y + PADDLE_HEIGHT)
+   {
       ball->vel_x = -ball->vel_x;
       ball->x = SCREEN_XRES - PADDLE_WIDTH - BALL_SIZE;
       // Add some vertical velocity based on where ball hits paddle
-      int hit_pos = (ball->y + BALL_SIZE/2) - (right_paddle->y + PADDLE_HEIGHT/2);
+      int hit_pos = (ball->y + BALL_SIZE / 2) - (right_paddle->y + PADDLE_HEIGHT / 2);
       ball->vel_y += hit_pos / 15;
    }
-   
+
    // Limit ball velocity
-   if (ball->vel_y > 3) ball->vel_y = 3;
-   if (ball->vel_y < -3) ball->vel_y = -3;
+   if (ball->vel_y > 3)
+      ball->vel_y = 3;
+   if (ball->vel_y < -3)
+      ball->vel_y = -3;
 }
 
-int check_scoring(Ball *ball, Paddle *left_paddle, Paddle *right_paddle) {
+int check_scoring(Ball *ball, Paddle *left_paddle, Paddle *right_paddle)
+{
    // Check if ball went off screen
-   if (ball->x < 0) {
+   if (ball->x < 0)
+   {
       right_paddle->score++;
       return 1; // Right player scored
    }
-   if (ball->x > SCREEN_XRES) {
+   if (ball->x > SCREEN_XRES)
+   {
       left_paddle->score++;
       return 2; // Left player scored
    }
    return 0; // No score
 }
 
-void draw_paddle(RenderContext *ctx, int x, int y) {
+void draw_paddle(RenderContext *ctx, int x, int y)
+{
    TILE *tile = (TILE *)new_primitive(ctx, 1, sizeof(TILE));
    setTile(tile);
    setXY0(tile, x, y);
@@ -202,7 +218,8 @@ void draw_paddle(RenderContext *ctx, int x, int y) {
    setRGB0(tile, 255, 255, 255);
 }
 
-void draw_ball(RenderContext *ctx, Ball *ball) {
+void draw_ball(RenderContext *ctx, Ball *ball)
+{
    TILE *tile = (TILE *)new_primitive(ctx, 1, sizeof(TILE));
    setTile(tile);
    setXY0(tile, ball->x, ball->y);
@@ -210,11 +227,13 @@ void draw_ball(RenderContext *ctx, Ball *ball) {
    setRGB0(tile, 255, 255, 0);
 }
 
-void draw_center_line(RenderContext *ctx) {
-   for (int y = 0; y < SCREEN_YRES; y += 16) {
+void draw_center_line(RenderContext *ctx)
+{
+   for (int y = 0; y < SCREEN_YRES; y += 16)
+   {
       TILE *tile = (TILE *)new_primitive(ctx, 0, sizeof(TILE));
       setTile(tile);
-      setXY0(tile, SCREEN_XRES/2 - 1, y);
+      setXY0(tile, SCREEN_XRES / 2 - 1, y);
       setWH(tile, 2, 8);
       setRGB0(tile, 128, 128, 128);
    }
@@ -238,9 +257,13 @@ int main(int argc, const char **argv)
    // Game state
    GameState state = GAME_MENU;
    Ball ball;
-   Paddle left_paddle = {SCREEN_YRES/2 - PADDLE_HEIGHT/2, 0};
-   Paddle right_paddle = {SCREEN_YRES/2 - PADDLE_HEIGHT/2, 0};
-   
+   Paddle left_paddle = {SCREEN_YRES / 2 - PADDLE_HEIGHT / 2, 0};
+   Paddle right_paddle = {SCREEN_YRES / 2 - PADDLE_HEIGHT / 2, 0};
+
+   float game_time = 0.0f;
+   float start_time = 0.0f;
+   float end_time = 0.0f;
+
    reset_ball(&ball);
 
    for (;;)
@@ -251,136 +274,170 @@ int main(int argc, const char **argv)
 
       char text_buffer[256];
 
-      switch (state) {
-         case GAME_MENU:
-            draw_text(&ctx, SCREEN_XRES/2 - 32, SCREEN_YRES/2 - 40, 0, "PONG");
-            draw_text(&ctx, SCREEN_XRES/2 - 80, SCREEN_YRES/2 - 16, 0, "PRESS X TO START");
-            draw_text(&ctx, SCREEN_XRES/2 - 120, SCREEN_YRES/2 + 8, 0, "PLAYER 1: LEFT PADDLE (PAD 1)");
-            draw_text(&ctx, SCREEN_XRES/2 - 120, SCREEN_YRES/2 + 24, 0, "PLAYER 2: RIGHT PADDLE (PAD 2)");
-            draw_text(&ctx, SCREEN_XRES/2 - 80, SCREEN_YRES/2 + 48, 0, "USE D-PAD UP/DOWN");
-            
-            if (pad1.system.start) {
-               state = GAME_PLAYING;
-               left_paddle.score = 0;
-               right_paddle.score = 0;
-               reset_ball(&ball);
-            }
-            break;
+      switch (state)
+      {
+      case GAME_MENU:
+         draw_text(&ctx, SCREEN_XRES / 2 - 32, SCREEN_YRES / 2 - 40, 0, "PONG");
+         draw_text(&ctx, SCREEN_XRES / 2 - 80, SCREEN_YRES / 2 - 16, 0, "PRESS X TO START");
+         draw_text(&ctx, SCREEN_XRES / 2 - 120, SCREEN_YRES / 2 + 8, 0, "PLAYER 1: LEFT PADDLE (PAD 1)");
+         draw_text(&ctx, SCREEN_XRES / 2 - 120, SCREEN_YRES / 2 + 24, 0, "PLAYER 2: RIGHT PADDLE (PAD 2)");
+         draw_text(&ctx, SCREEN_XRES / 2 - 80, SCREEN_YRES / 2 + 48, 0, "USE D-PAD UP/DOWN");
 
-         case GAME_PLAYING:
-            
-            if (pad1.connected) {
-               if (pad1.dpad.up && left_paddle.y > 0) {
-                  left_paddle.y -= PADDLE_SPEED;
-               }
-               if (pad1.dpad.down && left_paddle.y < SCREEN_YRES - PADDLE_HEIGHT) {
-                  left_paddle.y += PADDLE_SPEED;
-               }
-               
-               // Handle analog stick for player 1
-               if (is_analog_available(&pad1)) {
-                  float analog_y = get_analog_y_normalized(&pad1, true);
-                  left_paddle.y += (int)(analog_y * PADDLE_SPEED);
-               }
-            } else {
-               // AI for left paddle if no controller
-               int ball_center = ball.y + BALL_SIZE/2;
-               int paddle_center = left_paddle.y + PADDLE_HEIGHT/2;
-               if (ball_center < paddle_center - 10) {
-                  left_paddle.y -= PADDLE_SPEED - 2;
-               } else if (ball_center > paddle_center + 10) {
-                  left_paddle.y += PADDLE_SPEED - 2;
-               }
+         if (pad1.system.start)
+         {
+            state = GAME_PLAYING;
+            left_paddle.score = 0;
+            right_paddle.score = 0;
+            reset_ball(&ball);
+         }
+         break;
+
+      case GAME_PLAYING:
+
+         if (pad1.connected)
+         {
+            if (pad1.dpad.up && left_paddle.y > 0)
+            {
+               left_paddle.y -= PADDLE_SPEED;
+            }
+            if (pad1.dpad.down && left_paddle.y < SCREEN_YRES - PADDLE_HEIGHT)
+            {
+               left_paddle.y += PADDLE_SPEED;
             }
 
-            // Player 2 (right paddle) controls
-            if (pad2.connected) {
-               if (pad2.dpad.up && right_paddle.y > 0) {
-                  right_paddle.y -= PADDLE_SPEED;
-               }
-               if (pad2.dpad.down && right_paddle.y < SCREEN_YRES - PADDLE_HEIGHT) {
-                  right_paddle.y += PADDLE_SPEED;
-               }
-               
-               // Handle analog stick for player 2
-               if (is_analog_available(&pad2)) {
-                  float analog_y = get_analog_y_normalized(&pad2, true);
-                  right_paddle.y += (int)(analog_y * PADDLE_SPEED);
-               }
-            } else {
-               // AI for right paddle if no controller
-               int ball_center = ball.y + BALL_SIZE/2;
-               int paddle_center = right_paddle.y + PADDLE_HEIGHT/2;
-               if (ball_center < paddle_center - 10) {
-                  right_paddle.y -= PADDLE_SPEED - 1;
-               } else if (ball_center > paddle_center + 10) {
-                  right_paddle.y += PADDLE_SPEED - 1;
-               }
+            // Handle analog stick for player 1
+            if (is_analog_available(&pad1))
+            {
+               float analog_y = get_analog_y_normalized(&pad1, true);
+               left_paddle.y += (int)(analog_y * PADDLE_SPEED);
+            }
+         }
+         else
+         {
+            // AI for left paddle if no controller
+            int ball_center = ball.y + BALL_SIZE / 2;
+            int paddle_center = left_paddle.y + PADDLE_HEIGHT / 2;
+            if (ball_center < paddle_center - 10)
+            {
+               left_paddle.y -= PADDLE_SPEED - 2;
+            }
+            else if (ball_center > paddle_center + 10)
+            {
+               left_paddle.y += PADDLE_SPEED - 2;
+            }
+         }
+
+         // Player 2 (right paddle) controls
+         if (pad2.connected)
+         {
+            if (pad2.dpad.up && right_paddle.y > 0)
+            {
+               right_paddle.y -= PADDLE_SPEED;
+            }
+            if (pad2.dpad.down && right_paddle.y < SCREEN_YRES - PADDLE_HEIGHT)
+            {
+               right_paddle.y += PADDLE_SPEED;
             }
 
-            // Keep paddles in bounds
-            if (left_paddle.y < 0) left_paddle.y = 0;
-            if (left_paddle.y > SCREEN_YRES - PADDLE_HEIGHT) left_paddle.y = SCREEN_YRES - PADDLE_HEIGHT;
-            if (right_paddle.y < 0) right_paddle.y = 0;
-            if (right_paddle.y > SCREEN_YRES - PADDLE_HEIGHT) right_paddle.y = SCREEN_YRES - PADDLE_HEIGHT;
-
-            // Update ball
-            update_ball(&ball, &left_paddle, &right_paddle);
-
-            // Check for scoring
-            int scored = check_scoring(&ball, &left_paddle, &right_paddle);
-            if (scored) {
-               reset_ball(&ball);
-               if (left_paddle.score >= 5 || right_paddle.score >= 5) {
-                  state = GAME_OVER;
-               }
+            // Handle analog stick for player 2
+            if (is_analog_available(&pad2))
+            {
+               float analog_y = get_analog_y_normalized(&pad2, true);
+               right_paddle.y += (int)(analog_y * PADDLE_SPEED);
             }
-
-            // Pause functionality
-            if ((pad1.connected && pad1.face.triangle) || (pad2.connected && pad2.face.triangle)) {
-               state = GAME_PAUSED;
+         }
+         else
+         {
+            // AI for right paddle if no controller
+            int ball_center = ball.y + BALL_SIZE / 2;
+            int paddle_center = right_paddle.y + PADDLE_HEIGHT / 2;
+            if (ball_center < paddle_center - 10)
+            {
+               right_paddle.y -= PADDLE_SPEED - 1;
             }
-
-            // Draw game elements
-            draw_center_line(&ctx);
-            draw_paddle(&ctx, 0, left_paddle.y);
-            draw_paddle(&ctx, SCREEN_XRES - PADDLE_WIDTH, right_paddle.y);
-            draw_ball(&ctx, &ball);
-
-            // Draw scores
-            sprintf(text_buffer, "%d", left_paddle.score);
-            draw_text(&ctx, SCREEN_XRES/2 - 40, 20, 0, text_buffer);
-            sprintf(text_buffer, "%d", right_paddle.score);
-            draw_text(&ctx, SCREEN_XRES/2 + 32, 20, 0, text_buffer);
-
-            // Draw controller status
-            draw_text(&ctx, 8, SCREEN_YRES - 16, 0, pad1.connected ? "P1: OK" : "P1: AI");
-            draw_text(&ctx, SCREEN_XRES - 48, SCREEN_YRES - 16, 0, pad2.connected ? "P2: OK" : "P2: AI");
-            break;
-
-         case GAME_PAUSED:
-            draw_text(&ctx, SCREEN_XRES/2 - 24, SCREEN_YRES/2, 0, "PAUSED");
-            draw_text(&ctx, SCREEN_XRES/2 - 64, SCREEN_YRES/2 + 16, 0, "TRIANGLE TO RESUME");
-            
-            if ((pad1.connected && pad1.face.triangle) || (pad2.connected && pad2.face.triangle)) {
-               state = GAME_PLAYING;
+            else if (ball_center > paddle_center + 10)
+            {
+               right_paddle.y += PADDLE_SPEED - 1;
             }
-            break;
+         }
 
-         case GAME_OVER:
-            draw_text(&ctx, SCREEN_XRES/2 - 32, SCREEN_YRES/2 - 16, 0, "GAME OVER");
-            if (left_paddle.score >= 5) {
-               draw_text(&ctx, SCREEN_XRES/2 - 48, SCREEN_YRES/2, 0, "PLAYER 1 WINS!");
-            } else {
-               draw_text(&ctx, SCREEN_XRES/2 - 48, SCREEN_YRES/2, 0, "PLAYER 2 WINS!");
+         // Keep paddles in bounds
+         if (left_paddle.y < 0)
+            left_paddle.y = 0;
+         if (left_paddle.y > SCREEN_YRES - PADDLE_HEIGHT)
+            left_paddle.y = SCREEN_YRES - PADDLE_HEIGHT;
+         if (right_paddle.y < 0)
+            right_paddle.y = 0;
+         if (right_paddle.y > SCREEN_YRES - PADDLE_HEIGHT)
+            right_paddle.y = SCREEN_YRES - PADDLE_HEIGHT;
+
+         // Update ball
+         update_ball(&ball, &left_paddle, &right_paddle);
+
+         // Check for scoring
+         int scored = check_scoring(&ball, &left_paddle, &right_paddle);
+         if (scored)
+         {
+            reset_ball(&ball);
+            if (left_paddle.score >= 5 || right_paddle.score >= 5)
+            {
+               state = GAME_OVER;
             }
-            draw_text(&ctx, SCREEN_XRES/2 - 72, SCREEN_YRES/2 + 24, 0, "PRESS X TO PLAY AGAIN");
-            
-            if ((pad1.connected && pad1.face.x) || (pad2.connected && pad2.face.x)) {
-               state = GAME_MENU;
-            }
-            break;
+         }
+
+         // Pause functionality
+         if ((pad1.connected && pad1.face.triangle) || (pad2.connected && pad2.face.triangle))
+         {
+            state = GAME_PAUSED;
+         }
+
+         // Draw game elements
+         draw_center_line(&ctx);
+         draw_paddle(&ctx, 0, left_paddle.y);
+         draw_paddle(&ctx, SCREEN_XRES - PADDLE_WIDTH, right_paddle.y);
+         draw_ball(&ctx, &ball);
+
+         // Draw scores
+         sprintf(text_buffer, "%d", left_paddle.score);
+         draw_text(&ctx, SCREEN_XRES / 2 - 40, 20, 0, text_buffer);
+         sprintf(text_buffer, "%d", right_paddle.score);
+         draw_text(&ctx, SCREEN_XRES / 2 + 32, 20, 0, text_buffer);
+
+         // Draw controller status
+         draw_text(&ctx, 8, SCREEN_YRES - 16, 0, pad1.connected ? "P1: OK" : "P1: AI");
+         draw_text(&ctx, SCREEN_XRES - 48, SCREEN_YRES - 16, 0, pad2.connected ? "P2: OK" : "P2: AI");
+         break;
+
+      case GAME_PAUSED:
+         draw_text(&ctx, SCREEN_XRES / 2 - 24, SCREEN_YRES / 2, 0, "PAUSED");
+         draw_text(&ctx, SCREEN_XRES / 2 - 64, SCREEN_YRES / 2 + 16, 0, "TRIANGLE TO RESUME");
+
+         if ((pad1.connected && pad1.face.triangle) || (pad2.connected && pad2.face.triangle))
+         {
+            state = GAME_PLAYING;
+         }
+         break;
+
+      case GAME_OVER:
+         draw_text(&ctx, SCREEN_XRES / 2 - 32, SCREEN_YRES / 2 - 16, 0, "GAME OVER");
+         if (left_paddle.score >= 5)
+         {
+            draw_text(&ctx, SCREEN_XRES / 2 - 48, SCREEN_YRES / 2, 0, "PLAYER 1 WINS!");
+         }
+         else
+         {
+            draw_text(&ctx, SCREEN_XRES / 2 - 48, SCREEN_YRES / 2, 0, "PLAYER 2 WINS!");
+         }
+         draw_text(&ctx, SCREEN_XRES / 2 - 72, SCREEN_YRES / 2 + 24, 0, "PRESS X TO PLAY AGAIN");
+
+         if ((pad1.connected && pad1.face.x) || (pad2.connected && pad2.face.x))
+         {
+            state = GAME_MENU;
+         }
+         break;
       }
+
+      game_time += 0.016f; // Simulate frame time (60 FPS)
 
       flip_buffers(&ctx);
    }
