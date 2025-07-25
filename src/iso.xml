@@ -59,8 +59,8 @@
 			contain any number of files.
 		-->
 		<directory_tree>
-			<file name="SYSTEM.CNF"		type="data" source="${PROJECT_SOURCE_DIR}/system.cnf" />
-			<file name="TEMPLATE.EXE"	type="data" source="hello_pong.exe" />
+			<file name="SYSTEM.CNF"	 type="data" source="${PROJECT_SOURCE_DIR}/system.cnf" />
+			<file name="GAMEPS1.EXE" type="data" source="hello_pong.exe" />
 			<!--
 				This file is only required if you are using dynamic linking
 				(see the system/dynlink example). It contains the executable's

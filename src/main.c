@@ -119,6 +119,7 @@ void draw_text(RenderContext *ctx, int x, int y, int z, const char *text)
 #define BALL_SIZE 8
 #define PADDLE_SPEED 4
 #define INITIAL_BALL_SPEED 2
+#define PADDLE_MARGIN 10
 
 typedef struct
 {
@@ -163,24 +164,24 @@ void update_ball(Ball *ball, Paddle *left_paddle, Paddle *right_paddle)
    }
 
    // Check collision with left paddle
-   if (ball->x <= PADDLE_WIDTH &&
+   if (ball->x <= PADDLE_WIDTH + PADDLE_MARGIN &&
        ball->y + BALL_SIZE >= left_paddle->y &&
        ball->y <= left_paddle->y + PADDLE_HEIGHT)
    {
       ball->vel_x = -ball->vel_x;
-      ball->x = PADDLE_WIDTH;
+      ball->x = PADDLE_WIDTH + PADDLE_MARGIN;
       // Add some vertical velocity based on where ball hits paddle
       int hit_pos = (ball->y + BALL_SIZE / 2) - (left_paddle->y + PADDLE_HEIGHT / 2);
       ball->vel_y += hit_pos / 15;
    }
 
    // Check collision with right paddle
-   if (ball->x + BALL_SIZE >= SCREEN_XRES - PADDLE_WIDTH &&
+   if (ball->x + BALL_SIZE >= SCREEN_XRES - PADDLE_WIDTH - PADDLE_MARGIN &&
        ball->y + BALL_SIZE >= right_paddle->y &&
        ball->y <= right_paddle->y + PADDLE_HEIGHT)
    {
       ball->vel_x = -ball->vel_x;
-      ball->x = SCREEN_XRES - PADDLE_WIDTH - BALL_SIZE;
+      ball->x = SCREEN_XRES - PADDLE_WIDTH - BALL_SIZE - PADDLE_MARGIN;
       // Add some vertical velocity based on where ball hits paddle
       int hit_pos = (ball->y + BALL_SIZE / 2) - (right_paddle->y + PADDLE_HEIGHT / 2);
       ball->vel_y += hit_pos / 15;
@@ -283,13 +284,13 @@ int main(int argc, const char **argv)
          draw_text(&ctx, SCREEN_XRES / 2 - 120, SCREEN_YRES / 2 + 24, 0, "PLAYER 2: RIGHT PADDLE (PAD 2)");
          draw_text(&ctx, SCREEN_XRES / 2 - 80, SCREEN_YRES / 2 + 48, 0, "USE D-PAD UP/DOWN");
 
-         if (pad1.system.start)
-         {
-            state = GAME_PLAYING;
-            left_paddle.score = 0;
-            right_paddle.score = 0;
-            reset_ball(&ball);
-         }
+         // if (pad1.system.start)
+         // {
+         //    state = GAME_PLAYING;
+         //    left_paddle.score = 0;
+         //    right_paddle.score = 0;
+         //    reset_ball(&ball);
+         // }
          break;
 
       case GAME_PLAYING:
@@ -393,8 +394,8 @@ int main(int argc, const char **argv)
 
          // Draw game elements
          draw_center_line(&ctx);
-         draw_paddle(&ctx, 0, left_paddle.y);
-         draw_paddle(&ctx, SCREEN_XRES - PADDLE_WIDTH, right_paddle.y);
+         draw_paddle(&ctx, PADDLE_MARGIN, left_paddle.y);
+         draw_paddle(&ctx, SCREEN_XRES - PADDLE_WIDTH - PADDLE_MARGIN, right_paddle.y);
          draw_ball(&ctx, &ball);
 
          // Draw scores

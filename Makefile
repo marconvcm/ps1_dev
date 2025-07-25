@@ -1,4 +1,4 @@
-.PHONY: prepare build clean rename run run-fast build-run emulate up
+.PHONY: prepare build clean rename run run-fast build-run emulate up dist zip
 
 # Default DuckStation path for macOS
 DUCKSTATION ?= /Applications/DuckStation.app/Contents/MacOS/DuckStation
@@ -10,7 +10,8 @@ build:
 	docker run --platform linux/amd64 --rm -v $(PWD)/src:/workspace/src -v $(PWD)/out:/workspace/build -w /workspace/src psn00bsdk sh -c "cmake --preset default . && cmake --build /workspace/build"
 
 clean:
-	rm -rf out/
+	rm -rf out/ \
+   rm -rf dist/
 
 # Run the game with normal boot sequence
 run:
@@ -51,6 +52,8 @@ emulate: build run-fast
 # Build and run the game with fast boot in one command
 up: prepare emulate
 
+dist: clean build zip
+
 rename:
 	@if [ -z "$(NEW_NAME)" ]; then \
 		echo "Error: Please provide NEW_NAME parameter. Usage: make rename NEW_NAME=my_new_project"; \
@@ -73,3 +76,10 @@ rename:
 		sed -i.bak "s/$${OLD_NAME}/$(NEW_NAME)/g" src/system.cnf && rm src/system.cnf.bak; \
 	fi; \
 	echo "Project successfully renamed to '$(NEW_NAME)'"
+
+zip:
+	@PROJECT_NAME=$$(cat .project 2>/dev/null || echo "my_ps1_game"); \
+	echo "Creating distribution package..."; \
+	mkdir -p dist; \
+	zip -Xj "dist/$${PROJECT_NAME}.zip" "out/$${PROJECT_NAME}.bin" "out/$${PROJECT_NAME}.cue" \
+	echo "Distribution package created successfully."
