@@ -1,4 +1,4 @@
-.PHONY: prepare build clean rename run run-fast build-run build-run-fast
+.PHONY: prepare build clean rename run run-fast build-run emulate up
 
 # Default DuckStation path for macOS
 DUCKSTATION ?= /Applications/DuckStation.app/Contents/MacOS/DuckStation
@@ -46,7 +46,10 @@ run-fast:
 build-run: build run
 
 # Build and run the game with fast boot in one command
-build-run-fast: build run-fast
+emulate: build run-fast
+
+# Build and run the game with fast boot in one command
+up: prepare emulate
 
 rename:
 	@if [ -z "$(NEW_NAME)" ]; then \

@@ -1,21 +1,21 @@
 cmake_minimum_required(VERSION 3.21)
 
 project(
-	my_ps1_game
+	hello_pong
 	LANGUAGES    C CXX ASM
 	VERSION      1.0.0
-	DESCRIPTION  "my_ps1_game"
+	DESCRIPTION  "hello_pong"
 	HOMEPAGE_URL "http://lameguy64.net/?page=psn00bsdk"
 )
 
 file(GLOB _sources *.c)
 file(GLOB _lib_sources libs/*.c)
 
-psn00bsdk_add_executable(my_ps1_game GPREL ${_sources} ${_lib_sources})
+psn00bsdk_add_executable(hello_pong GPREL ${_sources} ${_lib_sources})
 
 psn00bsdk_add_cd_image(
 	iso         # Target name
-	my_ps1_game # Output file name (= my_ps1_game.bin + my_ps1_game.cue)
+	hello_pong # Output file name (= hello_pong.bin + hello_pong.cue)
 	iso.xml     # Path to config file
-	DEPENDS my_ps1_game system.cnf
+	DEPENDS hello_pong system.cnf
 )
