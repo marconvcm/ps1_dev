@@ -9,6 +9,7 @@
  * @date Current
  */
 #include "image_loader.h"
+#include <sys/types.h>
 #include <psxgpu.h>
 #include <psxgte.h>
 #include <string.h>

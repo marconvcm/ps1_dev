@@ -7,10 +7,10 @@ DUCKSTATION ?= /Applications/DuckStation.app/Contents/MacOS/DuckStation
 prepare:
 	docker build --platform linux/amd64 . -t psn00bsdk
 
-build: png2tim compile
+build: png2tim parcel compile
 	
 compile:
-	docker run --platform linux/amd64 --rm -v $(PWD)/src:/workspace/src -v $(PWD)/out:/workspace/build -w /workspace/src psn00bsdk sh -c "cmake --preset default . && cmake --build /workspace/build"
+	@docker run --platform linux/amd64 --rm -v $(PWD)/src:/workspace/src -v $(PWD)/out:/workspace/build -w /workspace/src psn00bsdk sh -c "cmake --preset default . && cmake --build /workspace/build"
 
 clean:
 	rm -rf out/ \
@@ -56,6 +56,9 @@ emulate: build run-fast
 up: prepare emulate
 
 dist: clean build zip
+
+parcel:
+	@ruby ./tools/parcel/main.rb;
 
 png2tim:
 	docker run --platform linux/amd64 --rm -v $(PWD)/src:/workspace/src -v $(PWD)/out:/workspace/build -w /workspace/src psn00bsdk sh -c "cd /workspace/src/assets && /opt/png2tim/png2tim.sh"

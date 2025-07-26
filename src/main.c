@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <psxgpu.h>
+#include "assets/assets.h"
 #include "libs/game_pad.h"
 #include "libs/numeric.h"
 #include "libs/math.h"
@@ -250,6 +251,7 @@ int main(int argc, const char **argv)
 
    // Set up our rendering context.
    RenderContext ctx;
+   image_init();
    setup_context(&ctx, SCREEN_XRES, SCREEN_YRES, 0, 0, 60); // Dark blue background
 
    // Initialize game pads for both players

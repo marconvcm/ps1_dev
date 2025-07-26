@@ -18,6 +18,7 @@ This project is based on [PSn00bSDK](https://github.com/Lameguy64/PSn00bSDK) ple
 
 ## Dependencies
 - Docker
+- Ruby
 - Make
 - PS1 emulator (e.g., DuckStation)
 

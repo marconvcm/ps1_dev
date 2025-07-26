@@ -13,6 +13,11 @@ file(GLOB _lib_sources libs/*.c)
 
 psn00bsdk_add_executable(hello_pong GPREL ${_sources} ${_lib_sources})
 
+#region images
+psn00bsdk_target_incbin(hello_pong PRIVATE tim_game_title assets/game_title.tim)
+psn00bsdk_target_incbin(hello_pong PRIVATE tim_main_texture assets/main_texture.tim)
+#endregion
+
 psn00bsdk_add_cd_image(
 	iso         # Target name
 	hello_pong # Output file name (= hello_pong.bin + hello_pong.cue)
