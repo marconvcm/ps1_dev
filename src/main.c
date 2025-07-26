@@ -2,12 +2,12 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <psxsio.h>
 #include <psxgpu.h>
-#include "assets/assets.h"
+#include <sys/types.h>
 #include "libs/game_pad.h"
 #include "libs/numeric.h"
 #include "libs/math.h"
-#include "libs/image_loader.h"
 
 // Length of the ordering table, i.e. the range Z coordinates can have, 0-15 in
 // this case. Larger values will allow for more granularity with depth (useful
@@ -17,6 +17,11 @@
 // Size of the buffer GPU commands and primitives are written to. If the program
 // crashes due to too many primitives being drawn, increase this value.
 #define BUFFER_LENGTH 8192
+
+// region images
+extern u_long tim_game_title[];
+extern u_long tim_main_texture[];
+// endregion
 
 /* Framebuffer/display list class */
 
@@ -242,6 +247,7 @@ void draw_center_line(RenderContext *ctx)
    }
 }
 
+
 int main(int argc, const char **argv)
 {
    // Initialize the GPU and load the default font texture provided by
@@ -251,7 +257,6 @@ int main(int argc, const char **argv)
 
    // Set up our rendering context.
    RenderContext ctx;
-   image_init();
    setup_context(&ctx, SCREEN_XRES, SCREEN_YRES, 0, 0, 60); // Dark blue background
 
    // Initialize game pads for both players

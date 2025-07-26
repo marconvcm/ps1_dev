@@ -31,7 +31,6 @@ def parcel_tim_files
 
    # Read the CMakeLists.txt file
    cmake_content = File.read(cmake_file)
-   assets_content = File.read($assets_file)
 
    # Create the new content to insert
    cmake_includes = tim_files.map do |tim_file|
@@ -60,19 +59,10 @@ def parcel_tim_files
       "extern u_long tim_#{target_name}[];\n"
    end
 
-   # Write the updated content back to assets.h
-   if assets_content.include?('// region images') && assets_content.include?('// endregion')
-      updated_assets_content = assets_content.gsub(
-         /\/\/ region images\n.*?\/\/ endregion/m,
-         "// region images\n\n#{tim_entries.join}\n// endregion"
-      )
-      File.write($assets_file, updated_assets_content)
-      puts "Successfully updated #{$assets_file} with #{tim_files.length} TIM file entries."
-   else
-      puts "Error: Could not find the region markers (// region images and // endregion) in #{$assets_file}"
-      exit 1
-   end
-
+   puts "Include TIM file entries in main.c: \n"
+   puts "// region images"
+   puts tim_entries.join
+   puts "// endregion "
 end
 
 parcel_tim_files if __FILE__ == $0
