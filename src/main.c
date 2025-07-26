@@ -6,6 +6,7 @@
 #include "libs/game_pad.h"
 #include "libs/numeric.h"
 #include "libs/math.h"
+#include "libs/image_loader.h"
 
 // Length of the ordering table, i.e. the range Z coordinates can have, 0-15 in
 // this case. Larger values will allow for more granularity with depth (useful
