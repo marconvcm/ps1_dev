@@ -19,8 +19,7 @@
 #define BUFFER_LENGTH 8192
 
 // region images
-extern u_long tim_game_title[];
-extern u_long tim_main_texture[];
+extern u_long tim_ball16c[];
 // endregion
 
 /* Framebuffer/display list class */
@@ -41,7 +40,7 @@ typedef struct
    int active_buffer;
 } RenderContext;
 
-void setup_context(RenderContext *ctx, int w, int h, int r, int g, int b)
+void initialize_render_context(RenderContext *ctx, int w, int h, int r, int g, int b)
 {
    // Place the two framebuffers vertically in VRAM.
    SetDefDrawEnv(&(ctx->buffers[0].draw_env), 0, 0, w, h);
@@ -226,13 +225,26 @@ void draw_paddle(RenderContext *ctx, int x, int y)
    setRGB0(tile, 255, 255, 255);
 }
 
-void draw_ball(RenderContext *ctx, Ball *ball)
+// Replace the existing draw_ball function with this:
+void draw_ball(RenderContext *ctx, Ball *ball, TIM_IMAGE *tim_ball)
 {
-   TILE *tile = (TILE *)new_primitive(ctx, 1, sizeof(TILE));
-   setTile(tile);
-   setXY0(tile, ball->x, ball->y);
-   setWH(tile, BALL_SIZE, BALL_SIZE);
-   setRGB0(tile, 255, 255, 0);
+    SPRT_16 *sprt = (SPRT_16 *)new_primitive(ctx, 1, sizeof(SPRT_16));
+    
+    // Initialize sprite properties
+    setSprt16(sprt);
+    setXY0(sprt, ball->x, ball->y);
+    setWH(sprt, BALL_SIZE, BALL_SIZE);
+    setRGB0(sprt, 128, 128, 128); // Neutral color (no tint)
+    
+    // Configure texture properties from TIM image
+    if (tim_ball->mode & 0x8) // Check if CLUT exists
+    {
+        setClut(sprt, tim_ball->crect->x, tim_ball->crect->y);
+    }
+    
+    // Set texture page and UV coordinates
+    setTPage(sprt, getTPage(tim_ball->mode & 0x3, 0, tim_ball->prect->x, tim_ball->prect->y));
+    setUV0(sprt, tim_ball->prect->x & 0xFF, tim_ball->prect->y & 0xFF);
 }
 
 void draw_center_line(RenderContext *ctx)
@@ -247,17 +259,37 @@ void draw_center_line(RenderContext *ctx)
    }
 }
 
+bool load_texture_to_context(RenderContext *ctx, TIM_IMAGE *image, u_long tim_data[])
+{
+
+   GetTimInfo(tim_data, image); /* Get TIM parameters */
+
+   LoadImage(image->prect, image->paddr); /* Upload texture to VRAM */
+   if (image->mode & 0x8)
+   {
+      LoadImage(image->crect, image->caddr); /* Upload CLUT if present */
+   }
+
+   return true;
+}
+
+TIM_IMAGE tim_ball_image; // Declared globally or in main scope
 
 int main(int argc, const char **argv)
 {
-   // Initialize the GPU and load the default font texture provided by
-   // PSn00bSDK at (960, 0) in VRAM.
+   // Initialize the GPU and load the default font texture provided by PSn00bSDK at (960, 0) in VRAM.
    ResetGraph(0);
    FntLoad(960, 0);
 
    // Set up our rendering context.
    RenderContext ctx;
-   setup_context(&ctx, SCREEN_XRES, SCREEN_YRES, 0, 0, 60); // Dark blue background
+   initialize_render_context(&ctx, SCREEN_XRES, SCREEN_YRES, 0, 0, 60); // Dark blue background
+
+   if (!load_texture_to_context(&ctx, &tim_ball_image, tim_ball16c))
+   {
+      printf("Failed to upload texture.\n");
+      return 1;
+   }
 
    // Initialize game pads for both players
    GamePad pad1 = init_game_pad(0); // Player 1 (left paddle)
@@ -266,10 +298,13 @@ int main(int argc, const char **argv)
    // Game state
    GameState state = GAME_MENU;
    Ball ball;
+
    Paddle left_paddle = {SCREEN_YRES / 2 - PADDLE_HEIGHT / 2, 0};
    Paddle right_paddle = {SCREEN_YRES / 2 - PADDLE_HEIGHT / 2, 0};
 
    reset_ball(&ball);
+
+   SPRT_16 *sprt;
 
    for (;;)
    {
@@ -401,7 +436,7 @@ int main(int argc, const char **argv)
          draw_center_line(&ctx);
          draw_paddle(&ctx, PADDLE_MARGIN, left_paddle.y);
          draw_paddle(&ctx, SCREEN_XRES - PADDLE_WIDTH - PADDLE_MARGIN, right_paddle.y);
-         draw_ball(&ctx, &ball);
+         draw_ball(&ctx, &ball, &tim_ball_image);
 
          // Draw scores
          sprintf(text_buffer, "%d", left_paddle.score);

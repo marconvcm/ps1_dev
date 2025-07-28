@@ -14,6 +14,7 @@ file(GLOB _lib_sources libs/*.c)
 psn00bsdk_add_executable(hello_pong GPREL ${_sources} ${_lib_sources})
 
 #region images
+psn00bsdk_target_incbin(hello_pong PRIVATE tim_ball16c assets/ball16c.tim)
 psn00bsdk_target_incbin(hello_pong PRIVATE tim_game_title assets/game_title.tim)
 psn00bsdk_target_incbin(hello_pong PRIVATE tim_main_texture assets/main_texture.tim)
 #endregion
