@@ -73,13 +73,15 @@ Builds the CD image in the `out/` directory:
 - `out/<project_name>.exe`
 
 ### 5. Run in Emulator
+You can either download DuckStation into the project automatically:
 ```bash
-# Auto-detects DuckStation or specify path:
-make emulate
-
-# Or pass a custom emulator path:
-DUCKSTATION=/path/to/duckstation make emulate
+make get-duckstation
 ```
+Or use a system-wide DuckStation installation. Then run:
+```bash
+make emulate
+```
+*(You can also pass a custom path via `DUCKSTATION=/path/to/duckstation make emulate`).*
 
 ### 6. Package for Distribution
 ```bash
@@ -97,6 +99,7 @@ Generates a release-ready zip file in `dist/<project_name>.zip` containing the `
 | `make build` | Converts assets and compiles the game into `.bin` / `.cue` CD image. |
 | `make compile` | Runs the CMake/Ninja build inside Docker without re-running asset conversion. |
 | `make png2tim` | Converts PNG assets in `src/assets/` to PS1 TIM format with safe VRAM offsets. |
+| `make get-duckstation` | Downloads DuckStation emulator (Linux AppImage, macOS bundle, or Windows) into `.duckstation/`. |
 | `make emulate` | Builds the game and launches DuckStation with `-fastboot`. |
 | `make run` | Builds the game and launches DuckStation with standard BIOS boot sequence. |
 | `make up` | Rebuilds the Docker image, compiles, and launches the emulator in one step. |

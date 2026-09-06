@@ -1,15 +1,44 @@
-.PHONY: prepare build clean rename run run-fast build-run emulate up dist zip png2tim compile
+.PHONY: prepare build clean rename run run-fast build-run emulate up dist zip png2tim compile get-duckstation
 
-# Cross-platform DuckStation emulator detection (macOS, Linux native, or Flatpak)
+# Cross-platform DuckStation emulator detection
+# Prioritizes local .duckstation/ installation, then system PATH, Flatpak, or standard locations
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-DUCKSTATION ?= /Applications/DuckStation.app/Contents/MacOS/DuckStation
+DUCKSTATION ?= $(shell \
+	if [ -f "$(PWD)/.duckstation/DuckStation.app/Contents/MacOS/DuckStation" ]; then \
+		echo "$(PWD)/.duckstation/DuckStation.app/Contents/MacOS/DuckStation"; \
+	elif [ -d "/Applications/DuckStation.app" ]; then \
+		echo "/Applications/DuckStation.app/Contents/MacOS/DuckStation"; \
+	else \
+		echo "$(PWD)/.duckstation/DuckStation.app/Contents/MacOS/DuckStation"; \
+	fi)
 else
-DUCKSTATION ?= $(shell which duckstation 2>/dev/null || which duckstation-qt 2>/dev/null || echo "flatpak run org.duckstation.DuckStation")
+DUCKSTATION ?= $(shell \
+	if [ -f "$(PWD)/.duckstation/duckstation" ]; then \
+		echo "$(PWD)/.duckstation/duckstation"; \
+	elif [ -f "$(PWD)/.duckstation/DuckStation-x64.AppImage" ]; then \
+		echo "$(PWD)/.duckstation/DuckStation-x64.AppImage"; \
+	elif [ -f "$(PWD)/.duckstation/DuckStation-arm64.AppImage" ]; then \
+		echo "$(PWD)/.duckstation/DuckStation-arm64.AppImage"; \
+	elif [ -f "$(PWD)/.duckstation/duckstation-qt-x64-ReleaseLTCG.exe" ]; then \
+		echo "$(PWD)/.duckstation/duckstation-qt-x64-ReleaseLTCG.exe"; \
+	elif which duckstation >/dev/null 2>&1; then \
+		which duckstation; \
+	elif which duckstation-qt >/dev/null 2>&1; then \
+		which duckstation-qt; \
+	elif flatpak info org.duckstation.DuckStation >/dev/null 2>&1; then \
+		echo "flatpak run org.duckstation.DuckStation"; \
+	else \
+		echo "$(PWD)/.duckstation/duckstation"; \
+	fi)
 endif
 
 # User mapping so Docker outputs files with host permissions
 DOCKER_USER := --user $(shell id -u):$(shell id -g)
+
+# Download DuckStation into .duckstation/ (auto-detects OS or pass PLATFORM=linux|mac|windows)
+get-duckstation:
+	@./tools/download_duckstation.sh $(PLATFORM)
 
 prepare:
 	docker build --platform linux/amd64 . -t psn00bsdk
@@ -27,7 +56,7 @@ clean:
 run:
 	@if ! command -v $(firstword $(DUCKSTATION)) >/dev/null 2>&1 && [ ! -f "$(DUCKSTATION)" ]; then \
 		echo "Error: DuckStation not found at '$(DUCKSTATION)'"; \
-		echo "You can specify a custom path with DUCKSTATION=/path/to/duckstation"; \
+		echo "Run 'make get-duckstation' to download it automatically, or specify DUCKSTATION=/path/to/duckstation"; \
 		exit 1; \
 	fi
 	@PROJECT_NAME=$$(cat .project 2>/dev/null || echo "hello_pong"); \
@@ -42,7 +71,7 @@ run:
 run-fast:
 	@if ! command -v $(firstword $(DUCKSTATION)) >/dev/null 2>&1 && [ ! -f "$(DUCKSTATION)" ]; then \
 		echo "Error: DuckStation not found at '$(DUCKSTATION)'"; \
-		echo "You can specify a custom path with DUCKSTATION=/path/to/duckstation"; \
+		echo "Run 'make get-duckstation' to download it automatically, or specify DUCKSTATION=/path/to/duckstation"; \
 		exit 1; \
 	fi
 	@PROJECT_NAME=$$(cat .project 2>/dev/null || echo "hello_pong"); \
