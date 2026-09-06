@@ -1,0 +1,36 @@
+name: Build PS1 Game
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Prepare Docker build environment
+        run: make prepare
+
+      - name: Build game and CD image
+        run: make build
+
+      - name: Create distribution package
+        run: make dist
+
+      - name: Upload game artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ps1-build-artifacts
+          path: |
+            out/*.bin
+            out/*.cue
+            dist/*.zip

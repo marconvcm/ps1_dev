@@ -18,9 +18,7 @@
 // crashes due to too many primitives being drawn, increase this value.
 #define BUFFER_LENGTH 8192
 
-// region images
-extern u_long tim_ball16c[];
-// endregion
+#include "assets/assets.h"
 
 /* Framebuffer/display list class */
 
@@ -323,7 +321,7 @@ int main(int argc, const char **argv)
          draw_text(&ctx, SCREEN_XRES / 2 - 120, SCREEN_YRES / 2 + 24, 0, "PLAYER 2: RIGHT PADDLE (PAD 2)");
          draw_text(&ctx, SCREEN_XRES / 2 - 80, SCREEN_YRES / 2 + 48, 0, "USE D-PAD UP/DOWN");
 
-         if (is_button_just_released(&pad1, PAD_BUTTON_CIRCLE))
+         if (is_button_just_released(&pad1, PAD_BUTTON_X) || is_button_just_released(&pad2, PAD_BUTTON_X))
          {
             state = GAME_PLAYING;
             left_paddle.score = 0;
@@ -471,7 +469,7 @@ int main(int argc, const char **argv)
          }
          draw_text(&ctx, SCREEN_XRES / 2 - 72, SCREEN_YRES / 2 + 24, 0, "PRESS X TO PLAY AGAIN");
 
-         if ((pad1.connected && pad1.face.x) || (pad2.connected && pad2.face.x))
+         if (is_button_just_released(&pad1, PAD_BUTTON_X) || is_button_just_released(&pad2, PAD_BUTTON_X))
          {
             state = GAME_MENU;
          }

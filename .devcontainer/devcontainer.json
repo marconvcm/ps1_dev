@@ -1,0 +1,28 @@
+{
+  "name": "PS1 Development (PSn00bSDK)",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": ".."
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "twxs.cmake"
+      ],
+      "settings": {
+        "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+        "C_Cpp.default.compilerPath": "/opt/psn00bsdk/bin/mipsel-none-elf-gcc",
+        "C_Cpp.default.includePath": [
+          "/opt/psn00bsdk/include",
+          "${workspaceFolder}/src",
+          "${workspaceFolder}/src/libs"
+        ]
+      }
+    }
+  },
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "remoteUser": "root"
+}

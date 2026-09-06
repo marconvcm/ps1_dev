@@ -1,0 +1,21 @@
+{
+  "configurations": [
+    {
+      "name": "PS1 (PSn00bSDK)",
+      "includePath": [
+        "${workspaceFolder}/src/**",
+        "/opt/psn00bsdk/include",
+        "/opt/PSn00bSDK-0.24-Linux/include"
+      ],
+      "defines": [
+        "__mips__",
+        "__psx__"
+      ],
+      "compilerPath": "/opt/psn00bsdk/bin/mipsel-none-elf-gcc",
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "linux-gcc-arm"
+    }
+  ],
+  "version": 4
+}

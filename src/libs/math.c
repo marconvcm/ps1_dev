@@ -1,49 +1,50 @@
+#define PSX_MATH_NO_SHORTCUTS
 #include "math.h"
 #include <stdlib.h>
 
-// PS1 doesn't have standard math.h, implementing necessary math functions
+// PS1 math implementation using lookup tables and fixed-point math
 
 // Static variables for random number generation
 static uint32_t rand_state = 1;
 
-// Min/Max functions
-float fmin(float a, float b)
+// Min/Max/Clamp functions
+float psx_fmin(float a, float b)
 {
    return a < b ? a : b;
 }
 
-float fmax(float a, float b)
+float psx_fmax(float a, float b)
 {
    return a > b ? a : b;
 }
 
-float fclamp(float value, float min, float max)
+float psx_fclamp(float value, float min_val, float max_val)
 {
-   return value < min ? min : (value > max ? max : value);
+   return value < min_val ? min_val : (value > max_val ? max_val : value);
 }
 
-int min(int a, int b)
+int psx_min(int a, int b)
 {
    return a < b ? a : b;
 }
 
-int max(int a, int b)
+int psx_max(int a, int b)
 {
    return a > b ? a : b;
 }
 
-int clamp(int value, int min, int max)
+int psx_clamp(int value, int min_val, int max_val)
 {
-   return value < min ? min : (value > max ? max : value);
+   return value < min_val ? min_val : (value > max_val ? max_val : value);
 }
 
 // Interpolation
-float lerp(float a, float b, float t)
+float psx_lerp(float a, float b, float t)
 {
    return a + (b - a) * t;
 }
 
-float ease_in_out(float a, float b, float t)
+float psx_ease_in_out(float a, float b, float t)
 {
    t = t * t * (3.0f - 2.0f * t);
    return a + (b - a) * t;
@@ -56,30 +57,30 @@ void set_random_seed(uint32_t seed)
 }
 
 // Fast LCG random number generator (suitable for games)
-uint32_t math_rand()
+uint32_t math_rand(void)
 {
    rand_state = rand_state * 1664525 + 1013904223;
    return rand_state;
 }
 
-float randf()
+float randf(void)
 {
    return (float)(math_rand() & 0x7FFFFFFF) / (float)0x7FFFFFFF;
 }
 
-float randf_range(float min, float max)
+float randf_range(float min_val, float max_val)
 {
-   return min + randf() * (max - min);
+   return min_val + randf() * (max_val - min_val);
 }
 
-int randi_range(int min, int max)
+int randi_range(int min_val, int max_val)
 {
-   return min + (math_rand() % (max - min + 1));
+   return min_val + (math_rand() % (max_val - min_val + 1));
 }
 
 // Trigonometric functions implementation - using lookup tables for PS1
 
-// Sine lookup table - 256 values covering 0 to 2π
+// Sine lookup table - 256 values covering 0 to 2pi
 static const float sine_table[256] = {
     0.000000f, 0.024541f, 0.049068f, 0.073565f, 0.098017f, 0.122411f, 0.146730f, 0.170962f,
     0.195090f, 0.219101f, 0.242980f, 0.266713f, 0.290285f, 0.313682f, 0.336890f, 0.359895f,
@@ -117,43 +118,40 @@ static const float sine_table[256] = {
 // Convert angle in radians to an index in the sine table
 static int angle_to_sine_index(float angle)
 {
-   // Normalize the angle to [0, 2π)
    while (angle < 0)
       angle += MATH_TWO_PI;
    while (angle >= MATH_TWO_PI)
       angle -= MATH_TWO_PI;
 
-   // Convert to index (256 values map to [0, 2π))
    return (int)((angle / MATH_TWO_PI) * 256) & 0xFF;
 }
 
-float sin(float angle)
+float psx_sin(float angle)
 {
    return sine_table[angle_to_sine_index(angle)];
 }
 
-float cos(float angle)
+float psx_cos(float angle)
 {
-   // Cosine is just sine with a phase shift of π/2
    return sine_table[angle_to_sine_index(angle + MATH_HALF_PI)];
 }
 
-float tan(float angle)
+float psx_tan(float angle)
 {
-   float s = sin(angle);
-   float c = cos(angle);
-   return (c != 0.0f) ? (s / c) : 0.0f; // Avoid division by zero
+   float s = psx_sin(angle);
+   float c = psx_cos(angle);
+   return (c != 0.0f) ? (s / c) : 0.0f;
 }
 
-// Approximation of atan2 - not as accurate but works for games
-float atan2(float y, float x)
+// Approximation of atan2
+float psx_atan2(float y, float x)
 {
    if (x == 0.0f)
    {
       return (y > 0.0f) ? MATH_HALF_PI : -MATH_HALF_PI;
    }
 
-   float abs_y = fabs(y);
+   float abs_y = psx_fabs(y);
    float angle;
 
    if (x >= 0.0f)
@@ -173,13 +171,13 @@ float atan2(float y, float x)
 }
 
 // Utility functions
-float fabs(float value)
+float psx_fabs(float value)
 {
    return value < 0.0f ? -value : value;
 }
 
-// Fast inverse square root from Quake III Arena
-float sqrt(float value)
+// Fast inverse square root
+float psx_sqrt(float value)
 {
    if (value <= 0.0f)
       return 0.0f;
@@ -187,28 +185,26 @@ float sqrt(float value)
    float x = value * 0.5f;
    float y = value;
 
-   // Evil floating point bit hack
    int i = *(int *)&y;
-   i = 0x5f3759df - (i >> 1); // What the...?
+   i = 0x5f3759df - (i >> 1);
    y = *(float *)&i;
 
    // Newton's method iteration
    y = y * (1.5f - (x * y * y));
 
-   // Return the square root (1/inverseSqrt)
    return value * y;
 }
 
-float distance(float x1, float y1, float x2, float y2)
+float psx_distance(float x1, float y1, float x2, float y2)
 {
    float dx = x2 - x1;
    float dy = y2 - y1;
-   return sqrt(dx * dx + dy * dy);
+   return psx_sqrt(dx * dx + dy * dy);
 }
 
-float angle_between_points(float x1, float y1, float x2, float y2)
+float psx_angle_between_points(float x1, float y1, float x2, float y2)
 {
-   return atan2(y2 - y1, x2 - x1);
+   return psx_atan2(y2 - y1, x2 - x1);
 }
 
 // Fixed point math implementation

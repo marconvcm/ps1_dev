@@ -8,13 +8,29 @@
    "configurePresets": [
       {
          "name": "default",
-         "displayName": "Default configuration",
-         "description": "Use this preset to build the project using PSn00bSDK.",
+         "displayName": "Default (Debug) configuration",
+         "description": "Debug build using PSn00bSDK with symbols.",
          "generator": "Ninja",
          "toolchainFile": "$env{PSN00BSDK_LIBS}/cmake/sdk.cmake",
          "binaryDir": "/workspace/build",
          "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Debug",
+            "PSN00BSDK_TC": "",
+            "PSN00BSDK_TARGET": "mipsel-none-elf"
+         },
+         "warnings": {
+            "dev": false
+         }
+      },
+      {
+         "name": "release",
+         "displayName": "Release configuration",
+         "description": "Optimized release build using PSn00bSDK.",
+         "generator": "Ninja",
+         "toolchainFile": "$env{PSN00BSDK_LIBS}/cmake/sdk.cmake",
+         "binaryDir": "/workspace/build",
+         "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Release",
             "PSN00BSDK_TC": "",
             "PSN00BSDK_TARGET": "mipsel-none-elf"
          },

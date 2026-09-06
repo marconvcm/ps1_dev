@@ -29,6 +29,7 @@
  */
 #include "game_pad.h"
 #include <psxpad.h>
+#include <psxapi.h>
 #include <string.h>
 
 // Internal pad buffer
@@ -101,10 +102,10 @@ static void update_analog_sticks(GamePad *pad, PADTYPE *psx_pad)
    if (pad->analog_mode && psx_pad->len >= 6)
    {
       // Analog data is available
-      pad->left_stick.x = psx_pad->rs_x;
-      pad->left_stick.y = psx_pad->rs_y;
-      pad->right_stick.x = psx_pad->ls_x;
-      pad->right_stick.y = psx_pad->ls_y;
+      pad->left_stick.x = psx_pad->ls_x;
+      pad->left_stick.y = psx_pad->ls_y;
+      pad->right_stick.x = psx_pad->rs_x;
+      pad->right_stick.y = psx_pad->rs_y;
    }
    else
    {

@@ -1,0 +1,33 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build PS1 Game",
+      "type": "shell",
+      "command": "make build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Emulate Game (DuckStation)",
+      "type": "shell",
+      "command": "make emulate",
+      "problemMatcher": []
+    },
+    {
+      "label": "Prepare Docker Environment",
+      "type": "shell",
+      "command": "make prepare",
+      "problemMatcher": []
+    },
+    {
+      "label": "Clean Output",
+      "type": "shell",
+      "command": "make clean",
+      "problemMatcher": []
+    }
+  ]
+}

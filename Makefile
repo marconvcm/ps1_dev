@@ -1,50 +1,57 @@
-.PHONY: prepare build clean rename run run-fast build-run emulate up dist zip
+.PHONY: prepare build clean rename run run-fast build-run emulate up dist zip png2tim compile
 
-# Default DuckStation path for macOS
+# Cross-platform DuckStation emulator detection (macOS, Linux native, or Flatpak)
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
 DUCKSTATION ?= /Applications/DuckStation.app/Contents/MacOS/DuckStation
+else
+DUCKSTATION ?= $(shell which duckstation 2>/dev/null || which duckstation-qt 2>/dev/null || echo "flatpak run org.duckstation.DuckStation")
+endif
 
+# User mapping so Docker outputs files with host permissions
+DOCKER_USER := --user $(shell id -u):$(shell id -g)
 
 prepare:
 	docker build --platform linux/amd64 . -t psn00bsdk
 
-build: png2tim parcel compile
-	
+build: png2tim compile
+
 compile:
-	@docker run --platform linux/amd64 --rm -v $(PWD)/src:/workspace/src -v $(PWD)/out:/workspace/build -w /workspace/src psn00bsdk sh -c "cmake --preset default . && cmake --build /workspace/build"
+	@mkdir -p out
+	@docker run --platform linux/amd64 $(DOCKER_USER) --rm -v $(PWD)/src:/workspace/src -v $(PWD)/out:/workspace/build -w /workspace/src psn00bsdk sh -c "cmake --preset default . && cmake --build /workspace/build"
 
 clean:
-	rm -rf out/ \
-	rm -rf dist/
+	@rm -rf out/ dist/ 2>/dev/null || docker run --rm -v $(PWD):/workspace psn00bsdk rm -rf /workspace/out /workspace/dist
 
 # Run the game with normal boot sequence
 run:
-	@if [ ! -f "$(DUCKSTATION)" ]; then \
-		echo "Error: DuckStation not found at $(DUCKSTATION)"; \
+	@if ! command -v $(firstword $(DUCKSTATION)) >/dev/null 2>&1 && [ ! -f "$(DUCKSTATION)" ]; then \
+		echo "Error: DuckStation not found at '$(DUCKSTATION)'"; \
 		echo "You can specify a custom path with DUCKSTATION=/path/to/duckstation"; \
 		exit 1; \
 	fi
-	@PROJECT_NAME=$$(cat .project 2>/dev/null || echo "my_ps1_game"); \
+	@PROJECT_NAME=$$(cat .project 2>/dev/null || echo "hello_pong"); \
 	if [ ! -f "out/$${PROJECT_NAME}.bin" ]; then \
 		echo "Error: Game binary not found. Run 'make build' first."; \
 		exit 1; \
 	fi; \
 	echo "Running $${PROJECT_NAME} with DuckStation..."; \
-	"$(DUCKSTATION)" -batch "out/$${PROJECT_NAME}.bin"
+	$(DUCKSTATION) -batch "out/$${PROJECT_NAME}.bin"
 
 # Run the game with fast boot sequence
 run-fast:
-	@if [ ! -f "$(DUCKSTATION)" ]; then \
-		echo "Error: DuckStation not found at $(DUCKSTATION)"; \
+	@if ! command -v $(firstword $(DUCKSTATION)) >/dev/null 2>&1 && [ ! -f "$(DUCKSTATION)" ]; then \
+		echo "Error: DuckStation not found at '$(DUCKSTATION)'"; \
 		echo "You can specify a custom path with DUCKSTATION=/path/to/duckstation"; \
 		exit 1; \
 	fi
-	@PROJECT_NAME=$$(cat .project 2>/dev/null || echo "my_ps1_game"); \
+	@PROJECT_NAME=$$(cat .project 2>/dev/null || echo "hello_pong"); \
 	if [ ! -f "out/$${PROJECT_NAME}.bin" ]; then \
 		echo "Error: Game binary not found. Run 'make build' first."; \
 		exit 1; \
 	fi; \
 	echo "Running $${PROJECT_NAME} with DuckStation (fast boot)..."; \
-	"$(DUCKSTATION)" -batch -fastboot "out/$${PROJECT_NAME}.bin"
+	$(DUCKSTATION) -batch -fastboot "out/$${PROJECT_NAME}.bin"
 
 # Build and run the game in one command
 build-run: build run
@@ -52,16 +59,14 @@ build-run: build run
 # Build and run the game with fast boot in one command
 emulate: build run-fast
 
-# Build and run the game with fast boot in one command
+# Build image and run the game with fast boot
 up: prepare emulate
 
 dist: clean build zip
 
-parcel:
-	@ruby ./tools/parcel/main.rb;
-
 png2tim:
-	docker run --platform linux/amd64 --rm -v $(PWD)/src:/workspace/src -v $(PWD)/out:/workspace/build -w /workspace/src psn00bsdk sh -c "cd /workspace/src/assets && /opt/png2tim/png2tim.sh"
+	@mkdir -p out
+	@docker run --platform linux/amd64 $(DOCKER_USER) --rm -v $(PWD)/src:/workspace/src -v $(PWD)/out:/workspace/build -w /workspace/src psn00bsdk sh -c "cd /workspace/src/assets && /opt/png2tim/png2tim.sh"
 
 rename:
 	@if [ -z "$(NEW_NAME)" ]; then \
@@ -72,22 +77,18 @@ rename:
 		echo "Error: NEW_NAME must be in snake_case format (lowercase letters, numbers, and underscores only, starting with a letter)"; \
 		exit 1; \
 	fi
-	@OLD_NAME=$$(cat .project 2>/dev/null || echo "my_ps1_game"); \
+	@OLD_NAME=$$(cat .project 2>/dev/null || echo "hello_pong"); \
 	if [ "$$OLD_NAME" = "$(NEW_NAME)" ]; then \
 		echo "Project name is already '$(NEW_NAME)'"; \
 		exit 0; \
 	fi; \
 	echo "Renaming project from '$$OLD_NAME' to '$(NEW_NAME)'..."; \
 	echo "$(NEW_NAME)" > .project; \
-	sed -i.bak "s/$$OLD_NAME/$(NEW_NAME)/g" src/CMakeLists.txt && rm src/CMakeLists.txt.bak; \
-	sed -i.bak "s/$$OLD_NAME/$(NEW_NAME)/g" src/iso.xml && rm src/iso.xml.bak; \
-	if [ -f src/system.cnf ]; then \
-		sed -i.bak "s/$${OLD_NAME}/$(NEW_NAME)/g" src/system.cnf && rm src/system.cnf.bak; \
-	fi; \
+	sed "s/$$OLD_NAME/$(NEW_NAME)/g" src/CMakeLists.txt > src/CMakeLists.txt.tmp && mv src/CMakeLists.txt.tmp src/CMakeLists.txt; \
 	echo "Project successfully renamed to '$(NEW_NAME)'"
 
 zip:
-	@PROJECT_NAME=$$(cat .project 2>/dev/null || echo "my_ps1_game"); \
+	@PROJECT_NAME=$$(cat .project 2>/dev/null || echo "hello_pong"); \
 	echo "Creating distribution package..."; \
 	mkdir -p dist; \
 	zip -Xj "dist/$${PROJECT_NAME}.zip" "out/$${PROJECT_NAME}.bin" "out/$${PROJECT_NAME}.cue"; \
