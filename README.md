@@ -50,6 +50,7 @@ Includes a fully playable 2-player Pong demo with analog stick support, AI fallb
 git clone https://github.com/marconvcm/ps1_dev.git my_game
 cd my_game && rm -rf .git && git init
 ```
+*(See the [Template Setup Guide](#template-setup-guide) below for a detailed explanation).*
 
 ### 2. Rename the Project
 ```bash
@@ -88,6 +89,78 @@ make emulate
 make dist
 ```
 Generates a release-ready zip file in `dist/<project_name>.zip` containing the `.bin` and `.cue` files.
+
+---
+
+## Template Setup Guide
+
+When adapting this template for your own project, follow these steps to detach it from the original repository history, establish your own Git repository, and rename the project.
+
+### 1. Detaching Git History & Initializing a New Repository
+
+Cloning this repository includes the git commit history and remote tracking of `marconvcm/ps1_dev`. To create a clean standalone repository for your game:
+
+```bash
+# 1. Clone the template into your new project directory
+git clone https://github.com/marconvcm/ps1_dev.git my_game
+cd my_game
+
+# 2. Delete the template's Git history and remote configuration
+rm -rf .git
+
+# 3. Initialize a clean Git repository
+git init
+git branch -M main
+
+# 4. Create your initial commit
+git add .
+git commit -m "Initial commit from ps1_dev template"
+
+# 5. Link to your own remote repository (GitHub, GitLab, etc.) and push
+git remote add origin https://github.com/<your-username>/my_game.git
+git push -u origin main
+```
+
+> [!NOTE]
+> If you clicked GitHub's **"Use this template"** button instead of `git clone`, GitHub automatically initializes a clean repository history for you. In that case, simply clone your new repository locally and proceed to renaming.
+
+---
+
+### 2. Renaming the Project
+
+The template provides an automated renaming command that updates the project name across all build configurations and metadata simultaneously:
+
+```bash
+make rename NEW_NAME=my_game
+```
+
+> [!IMPORTANT]
+> The project name must be formatted in **`snake_case`** (lowercase letters, numbers, and underscores, beginning with a letter). For example: `my_game`, `space_invaders`, `kart_racer`.
+
+#### How Project Renaming Works Under the Hood:
+
+When you run `make rename NEW_NAME=<name>`, the following files and configurations are updated:
+
+1. **`.project`:** Stores the active project name. The `Makefile` reads this file dynamically to determine target filenames for emulator launches (`make run`, `make emulate`), binary checks (`out/<name>.bin`), and zip distributions (`dist/<name>.zip`).
+2. **`src/CMakeLists.txt`:** Updates `project(<name> ...)` and the corresponding executable and CD image targets (`psn00bsdk_add_executable`, `psn00bsdk_add_cd_image`).
+3. **`src/iso.xml`:** Uses `${PROJECT_NAME}` dynamically from CMake. Renaming CMake automatically updates the disc volume label (`volume="${PROJECT_NAME}"`), volume set, and maps `${PROJECT_NAME}.exe` as `GAMEPS1.EXE` on the PS1 filesystem.
+4. **Build Outputs:** Subsequent builds will generate:
+   - `out/<name>.bin` and `out/<name>.cue` (standard PS1 CD-ROM image)
+   - `out/<name>.exe` (MIPS executable)
+   - `dist/<name>.zip` (release package created via `make dist`)
+
+---
+
+### 3. Transitioning from Demo to Your Own Game
+
+The repository includes a 2-player Pong demo as a reference implementation. To start developing your own game:
+
+- **Game Logic (`src/main.c`):** Replace the Pong game loop, rendering routines, and paddle physics with your custom gameplay code.
+- **Assets (`src/assets/`):** Replace the demo PNG textures (`paddle.png`, `ball.png`, `font.png`) with your own graphics. The build system will automatically convert them to `.tim` format and update `src/assets/assets.h`.
+- **Core Libraries (`src/libs/`):** You can keep and leverage the included reusable modules:
+  - [`game_pad.h`](src/libs/game_pad.h): Controller input abstraction (digital buttons, D-Pad, dual analog sticks).
+  - [`math.h`](src/libs/math.h): Hardware-friendly fixed-point trigonometry lookup tables (`sin`, `cos`).
+  - [`numeric.h`](src/libs/numeric.h): Vector2 and Vector3 operations.
 
 ---
 
